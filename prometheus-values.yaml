@@ -1,19 +1,64 @@
 alertmanager:
   enabled: true
   alertmanagerSpec:
-    replicaCount: 1
+    # alertmanagerSpec 하위에는 replicaCount가 아니라 replicas 입니다. 수정했습니다.
+    replicas: 1
 
 grafana:
   enabled: true
   replicaCount: 1
-  service:
-    type: ClusterIP
+
+  serviceAccount:
+    create: true
+    name: grafana
+    annotations:
+      # 중요: YOUR-ACCOUNT-ID를 실제 AWS 계정 ID로 변경해야 합니다.
+      eks.amazonaws.com/role-arn: arn:aws:iam::177716289679:role/eks-grafana-cloudwatch
+  # 퍼시스턴트 볼륨 설정: Grafana 대시보드와 설정을 재시작해도 유지
+  persistence:
+    enabled: true
+    size: 1Gi
+    # storageClassName은 환경에 맞게 설정 (gp2, gp3 등)
+    storageClassName: gp2
+
   sidecar:
     dashboards:
       enabled: true
       label: grafana_dashboard
       labelValue: "1"
+      folder: /tmp/dashboards
+      searchNamespace: ALL
+      provider:
+        allowUiUpdates: true
+    datasources:
+      enabled: true
+      label: grafana_datasource
+      labelValue: "1"
 
+  # --- 바로 이 부분을 추가합니다 ---
+  # 추가적인 데이터 소스를 정의하는 섹션입니다.
+  additionalDataSources:
+    # 이름은 자유롭게 지정할 수 있습니다.
+    - name: CloudWatch-RDS
+      # isDefault: true로 설정하면 이 데이터 소스가 기본값이 됩니다.
+      isDefault: false
+      type: cloudwatch
+      access: proxy
+      jsonData:
+        authType: default
+        defaultRegion: ap-northeast-2
+      # uid를 명시적으로 지정하여 대시보드에서 일관되게 사용할 수 있습니다.
+      uid: cloudwatch-rds
+      editable: true
+  # --- 여기까지 추가 ---
+  env:
+    # CloudWatch 플러그인이 기본적으로 활성화되어 있지만 명시적으로 설정
+    GF_INSTALL_PLUGINS: ""
+    # AWS SDK가 ServiceAccount의 토큰을 사용하도록 설정
+    AWS_SDK_LOAD_CONFIG: "true"
+    # 기본 리전 설정
+    AWS_DEFAULT_REGION: ap-northeast-2
+  
   ingress:
     enabled: true
     ingressClassName: alb
@@ -38,13 +83,14 @@ grafana:
               - key: workload
                 operator: In
                 values:
-                  - system    
+                  - system
 
 prometheus:
   enabled: true
   prometheusSpec:
     serviceMonitorSelectorNilUsesHelmValues: false
-    replicaCount: 1
+    # prometheusSpec 하위에는 replicaCount가 아니라 replicas 입니다. 수정했습니다.
+    replicas: 1
     resources:
       limits:
         cpu: 500m
@@ -52,9 +98,9 @@ prometheus:
       requests:
         cpu: 200m
         memory: 256Mi
-    retention: 10d             ## 기본 10d
+    retention: 10d
     retentionSize: 20GiB
-    scrapeInterval: 30s        ## 기본 30s
+    scrapeInterval: 30s
     storageSpec:
       volumeClaimTemplate:
         spec:
@@ -69,10 +115,10 @@ prometheus:
         requiredDuringSchedulingIgnoredDuringExecution:
           nodeSelectorTerms:
             - matchExpressions:
-                - key: workload
-                  operator: In
-                  values:
-                    - system
+              - key: workload
+                operator: In
+                values:
+                  - system
   ingress:
     enabled: true
     ingressClassName: alb

@@ -1,18 +1,12 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  # The name of this ConfigMap. Can be anything you like.
   name: my-custom-grafana-dashboard
-  # Must be the same namespace where Grafana is running.
   namespace: metric
-  # This label is CRITICAL. The Grafana sidecar looks for it.
   labels:
     grafana_dashboard: "1"
 data:
-  # The key here will become the filename inside Grafana.
   my-custom-dashboard.json: |-
-    # Paste the entire content of your exported JSON file here.
-    # Make sure the indentation is correct (it should be nested under 'data:').
     {
       "annotations": {
         "list": [
