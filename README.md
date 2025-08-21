@@ -53,4 +53,5 @@ export AWS_SECRET_ACCESS_KEY=<Your Access Key>
 #해결해야할 문제
 - Secret을 넣었을 때 alertmanager가 동작을 안하는 모습
 - grafana dashboard의 configMap data를 grafana가 가져오지 못함
-- zombie node들의 node exporter까지 query하여 dashboard에 생기는 오류류
+- zombie node들의 node exporter까지 query하여 dashboard에 생기는 오류
+- Thanos 통합시 생기는 자원문제. (Thanos too heavy)
