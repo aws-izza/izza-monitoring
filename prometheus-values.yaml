@@ -10,7 +10,6 @@ grafana:
 
   serviceAccount:
     create: true
-    name: grafana
     annotations:
       # 중요: YOUR-ACCOUNT-ID를 실제 AWS 계정 ID로 변경해야 합니다.
       eks.amazonaws.com/role-arn: arn:aws:iam::177716289679:role/eks-grafana-cloudwatch
