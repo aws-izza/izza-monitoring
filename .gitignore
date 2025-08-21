@@ -1,0 +1,22 @@
+# 로컬 환경 설정 파일 (있는 경우)
+.env
+local.env
+
+# Terraform/IaC 상태 파일 (있는 경우)
+.terraform/
+*.tfstate
+*.tfstate.backup
+
+# 임시 파일 및 로그
+*.log
+*.zip
+*.tar.gz
+
+# IDE 및 OS 관련 파일
+.idea/
+.vscode/
+*.DS_Store
+
+# 비밀 정보를 담고 있을 수 있는 파일 (중요!)
+# credentials.yaml # 예시
+# secrets.conf # 예시
