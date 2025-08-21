@@ -17,6 +17,7 @@
 예를 들어
 export AWS_ACCESS_KEY_ID=<Your_ID>
 export AWS_SECRET_ACCESS_KEY=<Your Access Key>
+- eks inbound rule에 해당 ec2의 접근권한을 열어야합니다.
 
 ## 사용 방법
 
@@ -37,6 +38,11 @@ export AWS_SECRET_ACCESS_KEY=<Your Access Key>
     chmod +x deploy-monitoring.sh
     ./deploy-monitoring.sh
     ```
+
+4. eks 삭제시
+   ```sh
+    helm uninstall izza-prometheus -n metric
+   ```
 
 ## 파일들
 - `prometheus-values.yaml`: Prometheus 및 grafana의 주요 설정을 담고 있습니다. 알림 규칙은 이 파일 안에 정의되어 있습니다.
