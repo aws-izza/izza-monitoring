@@ -1,0 +1,47 @@
+prometheus:
+  ingress:
+    annotations:
+      alb.ingress.kubernetes.io/group.name: observability
+    hosts:
+      - prometheus.izza-nopizza.com
+    paths:
+      - /
+    pathType: Prefix
+
+grafana:
+  # AWS 자격 증명을 환경변수로 추가
+  envFromSecret: aws-credentials
+  
+  env:
+    AWS_REGION: ap-northeast-2
+    AWS_SDK_LOAD_CONFIG: "true"
+  
+  # CloudWatch 플러그인 추가
+  plugins:
+    - grafana-cloudwatch-datasource
+  
+  # 사이드카로 ConfigMap 자동 로드 활성화
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      labelValue: "1"
+      searchNamespace: ALL
+      provider:
+        allowUiUpdates: true
+    datasources:
+      enabled: true
+      label: grafana_datasource  
+      labelValue: "1"
+      searchNamespace: ALL
+  
+  # Grafana ingress 설정
+  ingress:
+    enabled: true
+    annotations:
+      alb.ingress.kubernetes.io/group.name: observability
+    hosts:
+      - grafana.izza-nopizza.com
+    paths:
+      - /
+    pathType: Prefix

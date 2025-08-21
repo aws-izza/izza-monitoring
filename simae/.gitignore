@@ -1,0 +1,18 @@
+# AWS 설정 파일
+trust-policy.json
+cloudwatch-policy.json
+current-values.yaml
+aws-credentials
+
+# 개인 파일
+.bash_history
+.bash_profile
+.bashrc
+
+# 바이너리 파일
+*.tar.gz
+eksctl
+
+# 임시 파일
+*.tmp
+*.log

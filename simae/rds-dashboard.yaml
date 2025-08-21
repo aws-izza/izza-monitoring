@@ -1,0 +1,390 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rds-dashboard
+  namespace: metric
+  labels:
+    grafana_dashboard: "1"
+data:
+  rds-complete.json: |-
+    {
+      "uid": "rds-complete-monitoring",
+      "title": "RDS Complete Monitoring",
+      "tags": ["aws", "rds", "database"],
+      "time": {
+        "from": "now-1h",
+        "to": "now"
+      },
+      "refresh": "30s",
+      "panels": [
+        {
+          "type": "stat",
+          "title": "CPU Utilization (%)",
+          "datasource": {"uid": "cloudwatch-rds"},
+          "gridPos": {"h": 6, "w": 4, "x": 0, "y": 0},
+          "fieldConfig": {
+            "defaults": {
+              "thresholds": {
+                "steps": [
+                  {"color": "green", "value": 0},
+                  {"color": "yellow", "value": 70},
+                  {"color": "red", "value": 85}
+                ]
+              },
+              "unit": "percent",
+              "min": 0,
+              "max": 100
+            }
+          },
+          "targets": [{
+            "region": "ap-northeast-2",
+            "namespace": "AWS/RDS",
+            "metricName": "CPUUtilization",
+            "dimensions": {"DBInstanceIdentifier": "izza-db"},
+            "statistics": ["Average"],
+            "period": "300"
+          }]
+        },
+        {
+          "type": "stat",
+          "title": "Database Connections",
+          "datasource": {"uid": "cloudwatch-rds"},
+          "gridPos": {"h": 6, "w": 4, "x": 4, "y": 0},
+          "fieldConfig": {
+            "defaults": {
+              "thresholds": {
+                "steps": [
+                  {"color": "green", "value": 0},
+                  {"color": "yellow", "value": 80},
+                  {"color": "red", "value": 95}
+                ]
+              },
+              "unit": "short"
+            }
+          },
+          "targets": [{
+            "region": "ap-northeast-2",
+            "namespace": "AWS/RDS",
+            "metricName": "DatabaseConnections",
+            "dimensions": {"DBInstanceIdentifier": "izza-db"},
+            "statistics": ["Average"],
+            "period": "300"
+          }]
+        },
+        {
+          "type": "stat",
+          "title": "Free Memory (MB)",
+          "datasource": {"uid": "cloudwatch-rds"},
+          "gridPos": {"h": 6, "w": 4, "x": 8, "y": 0},
+          "fieldConfig": {
+            "defaults": {
+              "thresholds": {
+                "steps": [
+                  {"color": "red", "value": 0},
+                  {"color": "yellow", "value": 104857600},
+                  {"color": "green", "value": 209715200}
+                ]
+              },
+              "unit": "decbytes"
+            }
+          },
+          "targets": [{
+            "region": "ap-northeast-2",
+            "namespace": "AWS/RDS",
+            "metricName": "FreeableMemory",
+            "dimensions": {"DBInstanceIdentifier": "izza-db"},
+            "statistics": ["Average"],
+            "period": "300"
+          }]
+        },
+        {
+          "type": "stat",
+          "title": "Free Storage (GB)",
+          "datasource": {"uid": "cloudwatch-rds"},
+          "gridPos": {"h": 6, "w": 4, "x": 12, "y": 0},
+          "fieldConfig": {
+            "defaults": {
+              "thresholds": {
+                "steps": [
+                  {"color": "red", "value": 0},
+                  {"color": "yellow", "value": 2147483648},
+                  {"color": "green", "value": 5368709120}
+                ]
+              },
+              "unit": "decbytes"
+            }
+          },
+          "targets": [{
+            "region": "ap-northeast-2",
+            "namespace": "AWS/RDS",
+            "metricName": "FreeStorageSpace",
+            "dimensions": {"DBInstanceIdentifier": "izza-db"},
+            "statistics": ["Average"],
+            "period": "300"
+          }]
+        },
+        {
+          "type": "timeseries",
+          "title": "CPU Utilization Over Time",
+          "datasource": {"uid": "cloudwatch-rds"},
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 6},
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "drawStyle": "line",
+                "lineInterpolation": "linear",
+                "lineWidth": 2,
+                "fillOpacity": 10
+              },
+              "unit": "percent",
+              "min": 0,
+              "max": 100
+            }
+          },
+          "targets": [{
+            "region": "ap-northeast-2",
+            "namespace": "AWS/RDS",
+            "metricName": "CPUUtilization",
+            "dimensions": {"DBInstanceIdentifier": "izza-db"},
+            "statistics": ["Average"],
+            "period": "300"
+          }]
+        },
+        {
+          "type": "timeseries",
+          "title": "Database Connections Over Time",
+          "datasource": {"uid": "cloudwatch-rds"},
+          "gridPos": {"h": 8, "w": 12, "x": 12, "y": 6},
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "drawStyle": "line",
+                "lineInterpolation": "linear",
+                "lineWidth": 2,
+                "fillOpacity": 10
+              },
+              "unit": "short"
+            }
+          },
+          "targets": [{
+            "region": "ap-northeast-2",
+            "namespace": "AWS/RDS",
+            "metricName": "DatabaseConnections",
+            "dimensions": {"DBInstanceIdentifier": "izza-db"},
+            "statistics": ["Average"],
+            "period": "300"
+          }]
+        },
+        {
+          "type": "timeseries",
+          "title": "IOPS (Read/Write)",
+          "datasource": {"uid": "cloudwatch-rds"},
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 14},
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "drawStyle": "line",
+                "lineInterpolation": "linear",
+                "lineWidth": 2,
+                "fillOpacity": 10
+              },
+              "unit": "iops"
+            }
+          },
+          "targets": [
+            {
+              "region": "ap-northeast-2",
+              "namespace": "AWS/RDS",
+              "metricName": "ReadIOPS",
+              "dimensions": {"DBInstanceIdentifier": "izza-db"},
+              "statistics": ["Average"],
+              "period": "300",
+              "alias": "Read IOPS"
+            },
+            {
+              "region": "ap-northeast-2",
+              "namespace": "AWS/RDS",
+              "metricName": "WriteIOPS",
+              "dimensions": {"DBInstanceIdentifier": "izza-db"},
+              "statistics": ["Average"],
+              "period": "300",
+              "alias": "Write IOPS"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Latency (Read/Write)",
+          "datasource": {"uid": "cloudwatch-rds"},
+          "gridPos": {"h": 8, "w": 12, "x": 12, "y": 14},
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "drawStyle": "line",
+                "lineInterpolation": "linear",
+                "lineWidth": 2,
+                "fillOpacity": 10
+              },
+              "unit": "s"
+            }
+          },
+          "targets": [
+            {
+              "region": "ap-northeast-2",
+              "namespace": "AWS/RDS",
+              "metricName": "ReadLatency",
+              "dimensions": {"DBInstanceIdentifier": "izza-db"},
+              "statistics": ["Average"],
+              "period": "300",
+              "alias": "Read Latency"
+            },
+            {
+              "region": "ap-northeast-2",
+              "namespace": "AWS/RDS",
+              "metricName": "WriteLatency",
+              "dimensions": {"DBInstanceIdentifier": "izza-db"},
+              "statistics": ["Average"],
+              "period": "300",
+              "alias": "Write Latency"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Memory Usage",
+          "datasource": {"uid": "cloudwatch-rds"},
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 22},
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "drawStyle": "line",
+                "lineInterpolation": "linear",
+                "lineWidth": 2,
+                "fillOpacity": 10
+              },
+              "unit": "decbytes"
+            }
+          },
+          "targets": [
+            {
+              "region": "ap-northeast-2",
+              "namespace": "AWS/RDS",
+              "metricName": "FreeableMemory",
+              "dimensions": {"DBInstanceIdentifier": "izza-db"},
+              "statistics": ["Average"],
+              "period": "300",
+              "alias": "Freeable Memory"
+            },
+            {
+              "region": "ap-northeast-2",
+              "namespace": "AWS/RDS",
+              "metricName": "SwapUsage",
+              "dimensions": {"DBInstanceIdentifier": "izza-db"},
+              "statistics": ["Average"],
+              "period": "300",
+              "alias": "Swap Usage"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Storage Space",
+          "datasource": {"uid": "cloudwatch-rds"},
+          "gridPos": {"h": 8, "w": 12, "x": 12, "y": 22},
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "drawStyle": "line",
+                "lineInterpolation": "linear",
+                "lineWidth": 2,
+                "fillOpacity": 10
+              },
+              "unit": "decbytes"
+            }
+          },
+          "targets": [{
+            "region": "ap-northeast-2",
+            "namespace": "AWS/RDS",
+            "metricName": "FreeStorageSpace",
+            "dimensions": {"DBInstanceIdentifier": "izza-db"},
+            "statistics": ["Average"],
+            "period": "300",
+            "alias": "Free Storage Space"
+          }]
+        },
+        {
+          "type": "timeseries",
+          "title": "Network Throughput",
+          "datasource": {"uid": "cloudwatch-rds"},
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 30},
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "drawStyle": "line",
+                "lineInterpolation": "linear",
+                "lineWidth": 2,
+                "fillOpacity": 10
+              },
+              "unit": "Bps"
+            }
+          },
+          "targets": [
+            {
+              "region": "ap-northeast-2",
+              "namespace": "AWS/RDS",
+              "metricName": "NetworkReceiveThroughput",
+              "dimensions": {"DBInstanceIdentifier": "izza-db"},
+              "statistics": ["Average"],
+              "period": "300",
+              "alias": "Network Receive"
+            },
+            {
+              "region": "ap-northeast-2",
+              "namespace": "AWS/RDS",
+              "metricName": "NetworkTransmitThroughput",
+              "dimensions": {"DBInstanceIdentifier": "izza-db"},
+              "statistics": ["Average"],
+              "period": "300",
+              "alias": "Network Transmit"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Throughput (Read/Write)",
+          "datasource": {"uid": "cloudwatch-rds"},
+          "gridPos": {"h": 8, "w": 12, "x": 12, "y": 30},
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "drawStyle": "line",
+                "lineInterpolation": "linear",
+                "lineWidth": 2,
+                "fillOpacity": 10
+              },
+              "unit": "Bps"
+            }
+          },
+          "targets": [
+            {
+              "region": "ap-northeast-2",
+              "namespace": "AWS/RDS",
+              "metricName": "ReadThroughput",
+              "dimensions": {"DBInstanceIdentifier": "izza-db"},
+              "statistics": ["Average"],
+              "period": "300",
+              "alias": "Read Throughput"
+            },
+            {
+              "region": "ap-northeast-2",
+              "namespace": "AWS/RDS",
+              "metricName": "WriteThroughput",
+              "dimensions": {"DBInstanceIdentifier": "izza-db"},
+              "statistics": ["Average"],
+              "period": "300",
+              "alias": "Write Throughput"
+            }
+          ]
+        }
+      ]
+    }
