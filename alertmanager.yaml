@@ -1,0 +1,105 @@
+alertmanager:
+
+  extraSecretMounts:
+    - name: slack-webhook-secret-volume
+      secretName: alertmanager-slack-webhook 
+      mountPath: /etc/alertmanager/secrets 
+      readOnly: true
+
+  config:
+    global:
+      slack_api_url_file: '/etc/alertmanager/secrets/SLACK_WEBHOOK_URL'
+
+    route:
+      group_by: ['alertname', 'job']
+      # ... (나머지 route 설정은 동일) ...
+
+    receivers:
+      - name: 'slack-notifications'
+        slack_configs:
+          - channel: '#k8s-alert'
+            # ... (나머지 slack_configs 설정은 동일) ...  
+
+    route:
+      group_by: ['alertname', 'job']
+      group_wait: 30s
+      group_interval: 30m
+      repeat_interval: 1h
+      receiver: 'slack-notifications'
+      routes:
+        - receiver: 'slack-notifications'
+          # 심각도(severity)가 critical인 알림은 즉시 받도록 설정
+          matchers:
+            - severity = "critical"
+          continue: true # 다음 규칙도 계속 확인
+
+    receivers:
+      - name: 'slack-notifications'
+        slack_configs:
+          - channel: '#k8s-alert' # 본인 채널 이름으로 수정
+            send_resolved: true
+            title: '[{{ .Status | toUpper }}] {{ .CommonLabels.alertname }} ({{ .CommonLabels.severity | toUpper }})'
+            text: |
+              *Summary:* {{ .CommonAnnotations.summary }}
+              *Description:* {{ .CommonAnnotations.description }}
+              *Instance:* `{{ .CommonLabels.instance }}`
+
+# 2. Prometheus 알림 규칙 (새로운 규칙 추가!)
+prometheus:
+  prometheusSpec:
+    # PDF 문서 기반의 규칙 적용 방식을 유지합니다.
+    ruleSelector:
+      matchLabels: {}
+    ruleNamespaceSelector:
+      matchLabels: {}
+
+# Helm 차트의 기본 규칙 외에 우리가 직접 만든 규칙들을 여기에 정의합니다.
+serverFiles:
+  rules:
+    # 그룹 1: 노드(하드웨어) 상태 감시
+    node-alerts.yml:
+      groups:
+        - name: NodeMetrics
+          rules:
+            - alert: NodeHighCpuUsage
+              expr: (1 - avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m]))) * 100 > 80
+              for: 5m
+              labels:
+                severity: warning
+              annotations:
+                summary: "High CPU Usage on Node"
+                description: "CPU usage on instance {{ $labels.instance }} is over 80% for the last 5 minutes."
+
+            - alert: NodeHighMemoryUsage
+              expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+              for: 5m
+              labels:
+                severity: warning
+              annotations:
+                summary: "High Memory Usage on Node"
+                description: "Memory usage on instance {{ $labels.instance }} is over 85% for the last 5 minutes."
+
+    # 그룹 2: 애플리케이션(파드) 상태 감시
+    application-alerts.yml:
+      groups:
+        - name: ApplicationStatus
+          rules:
+            - alert: KubeDeploymentReplicasMismatch
+              # 배포(Deployment)에 설정된 파드 수와 실제 사용 가능한 파드 수가 2분 동안 다를 경우
+              expr: kube_deployment_spec_replicas{namespace="monitoring"} != kube_deployment_status_replicas_available{namespace="monitoring"}
+              for: 2m
+              labels:
+                severity: critical
+              annotations:
+                summary: "Deployment replicas mismatch"
+                description: "Deployment {{ $labels.deployment }} in namespace {{ $labels.namespace }} does not have the desired number of available replicas."
+
+            - alert: PrometheusDown
+              # Prometheus 자체의 up 메트릭을 감시하여 1분 이상 응답이 없으면 알림
+              expr: up{job="prometheus-k8s"} == 0
+              for: 1m
+              labels:
+                severity: critical
+              annotations:
+                summary: "Prometheus is down"
+                description: "The Prometheus instance {{ $labels.instance }} is down."

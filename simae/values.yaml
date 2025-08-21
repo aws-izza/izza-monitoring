@@ -1,0 +1,57 @@
+serviceAccount:
+  create: true
+  name: grafana
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::YOUR-ACCOUNT-ID:role/grafana-cloudwatch-role
+
+# CloudWatch 플러그인 활성화
+plugins:
+  - grafana-cloudwatch-datasource
+
+env:
+  AWS_REGION: ap-northeast-2
+  AWS_SDK_LOAD_CONFIG: "true"
+
+# 데이터소스 설정 (ConfigMap으로 별도 관리 가능)
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+    - name: CloudWatch
+      uid: cloudwatch
+      type: cloudwatch
+      access: proxy
+      jsonData:
+        authType: default  # IRSA 사용
+        defaultRegion: ap-northeast-2
+        assumeRoleArn: ""  # 비워두면 IRSA 사용
+      isDefault: false
+
+# 대시보드 자동 로드를 위한 사이드카 활성화
+sidecar:
+  dashboards:
+    enabled: true
+    label: grafana_dashboard
+    labelValue: "1"
+    folder: /tmp/dashboards
+    searchNamespace: ALL
+    provider:
+      allowUiUpdates: true
+  datasources:
+    enabled: true
+    label: grafana_datasource
+    labelValue: "1"
+
+# 리소스 설정
+resources:
+  requests:
+    memory: "128Mi"
+    cpu: "100m"
+  limits:
+    memory: "512Mi"
+    cpu: "500m"
+
+# 퍼시스턴트 볼륨 (선택사항)
+persistence:
+  enabled: true
+  size: 1Gi
