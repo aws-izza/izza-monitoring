@@ -1,0 +1,37 @@
+[
+  {
+    "Rules": [
+      {
+        "Resource": [
+          "collection/izza-log"
+        ],
+        "Permission": [
+          "aoss:CreateCollectionItems",
+          "aoss:DeleteCollectionItems",
+          "aoss:UpdateCollectionItems",
+          "aoss:DescribeCollectionItems"
+        ],
+        "ResourceType": "collection"
+      },
+      {
+        "Resource": [
+          "index/izza-log/*"
+        ],
+        "Permission": [
+          "aoss:CreateIndex",
+          "aoss:DeleteIndex",
+          "aoss:UpdateIndex",
+          "aoss:DescribeIndex",
+          "aoss:ReadDocument",
+          "aoss:WriteDocument"
+        ],
+        "ResourceType": "index"
+      }
+    ],
+    "Principal": [
+      "arn:aws:iam::<ACCOUNT NUM>:role/FluentBitOpenSearchRole",
+      "arn:aws:iam::<ACCOUNT NUM>:user/izza2"
+    ],
+    "Description": "Rule 1"
+  }
+]

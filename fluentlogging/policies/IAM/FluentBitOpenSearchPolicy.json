@@ -1,0 +1,12 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "aoss:*"
+            ],
+            "Resource": "arn:aws:aoss:ap-northeast-2:<ACCOUNT NUM>:collection/*"
+        }
+    ]
+}

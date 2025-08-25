@@ -1,0 +1,19 @@
+[
+  {
+    "Rules": [
+      {
+        "Resource": [
+          "collection/*"
+        ],
+        "ResourceType": "collection"
+      },
+      {
+        "Resource": [
+          "collection/*"
+        ],
+        "ResourceType": "dashboard"
+      }
+    ],
+    "AllowFromPublic": true
+  }
+]
