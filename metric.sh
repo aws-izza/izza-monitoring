@@ -93,7 +93,7 @@ create_slack_secret() {
     fi
     # Check if the URL is empty after the prompt
     if [[ -z "$SLACK_WEBHOOK_URL" ]]; then
-        error "Slack Webhook URL cannot be empty. Aborting."
+        return "Slack Webhook URL cannot be empty. Aborting."
     fi
 
     # Use --dry-run to check if the secret already exists, then decide to create or patch.
