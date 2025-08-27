@@ -2220,7 +2220,7 @@ data:
                 "type": "prometheus",
                 "uid": "prometheus"
               },
-              "expr": "sum(container_memory_usage_bytes{pod=\"$pod\"})",
+              "expr": "sum(container_memory_working_set_bytes{pod="$pod", container!="", container!="POD"})",
               "interval": "",
               "legendFormat": "Memory(bytes)",
               "refId": "B"
