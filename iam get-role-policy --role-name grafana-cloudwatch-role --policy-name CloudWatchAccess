@@ -1,0 +1,29 @@
+{
+    "Role": {
+        "Path": "/",
+        "RoleName": "grafana-cloudwatch-role",
+        "RoleId": "AROASSYFXMCHYTR3HR3AA",
+        "Arn": "arn:aws:iam::177716289679:role/grafana-cloudwatch-role",
+        "CreateDate": "2025-08-21T04:16:28+00:00",
+        "AssumeRolePolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Effect": "Allow",
+                    "Principal": {
+                        "Federated": "arn:aws:iam::YOUR-ACCOUNT-ID:oidc-provider/YOUR-OIDC-PROVIDER"
+                    },
+                    "Action": "sts:AssumeRoleWithWebIdentity",
+                    "Condition": {
+                        "StringEquals": {
+                            "YOUR-OIDC-PROVIDER:aud": "sts.amazonaws.com",
+                            "YOUR-OIDC-PROVIDER:sub": "system:serviceaccount:metric:grafana"
+                        }
+                    }
+                }
+            ]
+        },
+        "MaxSessionDuration": 3600,
+        "RoleLastUsed": {}
+    }
+}

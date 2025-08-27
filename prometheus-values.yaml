@@ -1,19 +1,57 @@
 alertmanager:
   enabled: true
   alertmanagerSpec:
-    replicaCount: 1
+
+    replicas: 1
 
 grafana:
   enabled: true
   replicaCount: 1
-  service:
-    type: ClusterIP
+
+  serviceAccount:
+    create: true
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::177716289679:role/eks-grafana-cloudwatch
+  # 퍼시스턴트 볼륨 설정: Grafana 대시보드와 설정을 재시작해도 유지
+  persistence:
+    enabled: true
+    size: 1Gi
+    # storageClassName은 환경에 맞게 설정 (gp2, gp3 등)
+    storageClassName: gp2
+
   sidecar:
     dashboards:
       enabled: true
       label: grafana_dashboard
       labelValue: "1"
+      folder: /tmp/dashboards
+      searchNamespace: ALL
+      provider:
+        allowUiUpdates: true
+    datasources:
+      enabled: true
+      label: grafana_datasource
+      labelValue: "1"
 
+
+  additionalDataSources:
+.
+    - name: CloudWatch-RDS
+
+      isDefault: false
+      type: cloudwatch
+      access: proxy
+      jsonData:
+        authType: default
+        defaultRegion: ap-northeast-2
+
+      uid: cloudwatch-rds
+      editable: true
+  env:
+    GF_INSTALL_PLUGINS: ""
+    AWS_SDK_LOAD_CONFIG: "true"
+    AWS_DEFAULT_REGION: ap-northeast-2
+  
   ingress:
     enabled: true
     ingressClassName: alb
@@ -38,13 +76,14 @@ grafana:
               - key: workload
                 operator: In
                 values:
-                  - system    
+                  - system
 
 prometheus:
   enabled: true
   prometheusSpec:
     serviceMonitorSelectorNilUsesHelmValues: false
-    replicaCount: 1
+    # prometheusSpec 하위에는 replicaCount가 아니라 replicas 입니다. 수정했습니다.
+    replicas: 1
     resources:
       limits:
         cpu: 500m
@@ -52,9 +91,9 @@ prometheus:
       requests:
         cpu: 200m
         memory: 256Mi
-    retention: 10d             ## 기본 10d
+    retention: 10d
     retentionSize: 20GiB
-    scrapeInterval: 30s        ## 기본 30s
+    scrapeInterval: 30s
     storageSpec:
       volumeClaimTemplate:
         spec:
@@ -69,10 +108,10 @@ prometheus:
         requiredDuringSchedulingIgnoredDuringExecution:
           nodeSelectorTerms:
             - matchExpressions:
-                - key: workload
-                  operator: In
-                  values:
-                    - system
+              - key: workload
+                operator: In
+                values:
+                  - system
   ingress:
     enabled: true
     ingressClassName: alb

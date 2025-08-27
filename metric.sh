@@ -150,6 +150,14 @@ deploy_custom_dashboards() {
     else
         warn "Dashboard ConfigMap file ('${DASHBOARD_CONFIGMAP_FILE}') not found. Skipping dashboard deployment."
     fi
+
+        # Apply the rds-dashboard.yaml
+    if [ -f "rds-dashboard.yaml" ]; then
+        kubectl apply -f rds-dashboard.yaml --namespace ${NAMESPACE}
+        success "Custom dashboard 'rds-dashboard.yaml' applied successfully."
+    else
+        warn "Dashboard file 'rds-dashboard.yaml' not found. Skipping."
+    fi
 }
 
 # --- Main Execution ---
