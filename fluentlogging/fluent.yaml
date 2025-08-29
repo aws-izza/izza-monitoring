@@ -45,12 +45,14 @@ metadata:
 data:
   fluent-bit.conf: |
     [SERVICE]
-        Flush        900
+        Flush        10
         Log_Level    info
         Parsers_File parsers.conf
 
     @INCLUDE jenkins.conf
-    @INCLUDE argocd.conf
+    @INCLUDE argocd-con.conf
+    @INCLUDE argocd-repo.conf
+    @INCLUDE ai-report.conf
 
   jenkins.conf: |
     [INPUT]
@@ -92,13 +94,23 @@ data:
         AWS_Region        ap-northeast-2
         AWS_Service_Name  aoss
         Suppress_Type_Name On
+    
+    [OUTPUT]
+        Name              s3
+        Match             jenkins.*
+        bucket            izza-logs
+        region            ap-northeast-2
+        s3_key_format     /jenkins/%Y/%m/%d/%H-%M-%S-$UUID.log
+        store_dir         /var/log/flb-s3/jenkins
+        upload_timeout    10
+        total_file_size   5m
 
-  argocd.conf: |
+  argocd-con.conf: |
     [INPUT]
         Name              tail
         Path              /var/log/containers/argocd-application-controller*.log
         Parser            cri
-        Tag               argocd.controller
+        Tag               argocdcon.*
         DB                /var/log/flb_argocd_controller.db
         Mem_Buf_Limit     5MB
         Skip_Long_Lines   On
@@ -106,22 +118,22 @@ data:
 
     [FILTER]
         Name              kubernetes
-        Match             argocd.controller.*
-        Kube_Tag_Prefix   argocd.controller.var.log.containers.
+        Match             argocdcon.*
+        Kube_Tag_Prefix   argocdcon.var.log.containers.
         Merge_Log         On
         K8S-Logging.Parser On
         K8S-Logging.Exclude Off
 
     [FILTER]
         Name    parser
-        Match   argocd.controller.*
+        Match   argocdcon.*
         Key_Name log
         Parser   argocd_json
         Reserve_Data On
 
     [FILTER]
         Name    modify
-        Match   argocd.controller.*
+        Match   argocdcon.*
         Rename  time @timestamp
         Rename  msg message
         Rename  level log.level
@@ -129,7 +141,7 @@ data:
 
     [OUTPUT]
         Name              opensearch
-        Match             argocd.controller.*
+        Match             argocdcon.*
         Host              fi454c4jzlbdxrvzw2c2.ap-northeast-2.aoss.amazonaws.com
         Port              443
         Logstash_Format   On
@@ -140,6 +152,129 @@ data:
         AWS_Region        ap-northeast-2
         AWS_Service_Name  aoss
         Suppress_Type_Name On
+    [OUTPUT]
+        Name              s3
+        Match             argocdcon.*
+        bucket            izza-logs
+        region            ap-northeast-2
+        s3_key_format     /argocd-controller/%Y/%m/%d/%H-%M-%S-$UUID.log
+        store_dir         /var/log/flb-s3/argocd-controller
+        upload_timeout    10m
+        total_file_size   5m
+
+  argocd-repo.conf: |
+    [INPUT]
+        Name              tail
+        Path              /var/log/containers/argocd-repo-*_argocd-repo-*.log
+        Parser            cri
+        Tag               argocdrepo.*
+        DB                /var/log/flb_argocd_repo.db
+        Mem_Buf_Limit     5MB
+        Skip_Long_Lines   On
+        Refresh_Interval  10
+
+    [FILTER]
+        Name              kubernetes
+        Match             argocdrepo.*
+        Kube_Tag_Prefix   argocdrepo.var.log.containers.
+        Merge_Log         On
+        K8S-Logging.Parser On
+        K8S-Logging.Exclude Off
+
+    [FILTER]
+        Name    parser
+        Match   argocdrepo.*
+        Key_Name log
+        Parser   argocd_json
+        Reserve_Data On
+
+    [FILTER]
+        Name    modify
+        Match   argocdrepo.*
+        Rename  time @timestamp
+        Rename  msg message
+        Rename  level log.level
+        Remove  log
+
+    [OUTPUT]
+        Name              opensearch
+        Match             argocdrepo.*
+        Host              fi454c4jzlbdxrvzw2c2.ap-northeast-2.aoss.amazonaws.com
+        Port              443
+        Logstash_Format   On
+        Logstash_Prefix   argocd-repo
+        tls               On
+        tls.verify        On
+        AWS_Auth          On
+        AWS_Region        ap-northeast-2
+        AWS_Service_Name  aoss
+        Suppress_Type_Name On
+    [OUTPUT]
+        Name              s3
+        Match             argocdrepo.*
+        bucket            izza-logs
+        region            ap-northeast-2
+        s3_key_format     /argocd-repo/%Y/%m/%d/%H-%M-%S-$UUID.log
+        store_dir         /var/log/flb-s3/argocd-repo
+        upload_timeout    10m
+        total_file_size   5m
+
+  ai-report.conf: |
+    [INPUT]
+        Name              tail
+        Path              /var/log/containers/ai-report-deployment*.log
+        Parser            cri
+        Tag               aireport.*
+        DB                /var/log/flb_ai_repo.db
+        Mem_Buf_Limit     2MB
+        Skip_Long_Lines   On
+        Refresh_Interval  10
+
+    [FILTER]
+        Name              kubernetes
+        Match             aireport.*
+        Kube_Tag_Prefix   aireport.var.log.containers.
+        Merge_Log         On
+        K8S-Logging.Parser On
+        K8S-Logging.Exclude Off
+
+    [FILTER]
+        Name              parser
+        Match             aireport.*
+        Key_Name          log
+        Parser            argocd_json
+        Reserve_Data      On
+
+    [FILTER]
+        Name    modify
+        Match   aireport.*
+        Rename  time @timestamp
+        Rename  level log.level
+        Remove  log
+
+    [OUTPUT]
+        Name              opensearch
+        Match             aireport.*
+        Host              fi454c4jzlbdxrvzw2c2.ap-northeast-2.aoss.amazonaws.com
+        Port              443
+        Logstash_Format   On
+        Logstash_Prefix   ai-report
+        tls               On
+        tls.verify        On
+        AWS_Auth          On
+        AWS_Region        ap-northeast-2
+        AWS_Service_Name  aoss
+        Suppress_Type_Name On
+    [OUTPUT]
+        Name              s3
+        Match             aireport.*
+        bucket            izza-logs
+        region            ap-northeast-2
+        s3_key_format     /ai-report/%Y/%m/%d/%H-%M-%S-$UUID.log
+        store_dir         /var/log/flb-s3/ai-report
+        upload_timeout    10m
+        total_file_size   5m
+
 
   parsers.conf: |
     [PARSER]
@@ -171,18 +306,24 @@ data:
         Time_Format %Y-%m-%d %H:%M:%S.%L%z
 
     [PARSER]
-        Name        grafana_logs
-        Format      regex
-        Regex       ^(?<log_time>\S+) \S+ \S+ logger=(?<logger>\S+) t=(?<ts>\S+) level=(?<level>\S+) msg="(?<msg>[^"]+)"(?: duration=(?<duration>\S+))?$
-        Time_Key    ts
-        Time_Format %Y-%m-%dT%H:%M:%S.%LZ
-
-    [PARSER]
         Name        argocd_firstline
         Format      regex
         Regex       ^(?<time>[^ ]+) (?<stream>stdout|stderr) F (?<log>.*)$
         Time_Key    time
         Time_Format %Y-%m-%dT%H:%M:%S.%LZ
+    
+    [PARSER]
+        Name        ai_json
+        Format      json
+        Time_Key    timestamp
+        Time_Keep   On
+
+    [PARSER]
+        Name        ai_accesslog
+        Format      regex
+        Regex       ^INFO:\s+(?<client_ip>[0-9\.]+):(?<port>[0-9]+)\s+-\s+"(?<method>[A-Z]+)\s+(?<path>[^ ]+)\s+HTTP/(?<http_version>[0-9\.]+)"\s+(?<status_code>[0-9]+).*
+        Time_Keep   On
+
 ---
 apiVersion: apps/v1
 kind: DaemonSet
